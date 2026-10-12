@@ -1,0 +1,58 @@
+WAK HEALTH & HOME CARE — ADMIN PANEL SETUP
+=============================================
+
+WHAT IS INCLUDED
+- index.html: public website; the Latest Updates label now clicks to the notice board.
+- admin.html: login + add/edit/delete/publish/draft manager.
+- supabase-config.js: connection settings used by both pages.
+- supabase-setup.sql: database, permissions, and upload bucket setup.
+
+IMPORTANT HONEST NOTE
+The panel code is built, but it cannot publish across devices until you connect a Supabase backend. This is required because GitHub Pages only hosts static files. Do NOT put a Supabase service_role key anywhere in these files. Only use the project's anon/public key.
+
+STEP 1 — CREATE SUPABASE PROJECT
+1. Open https://supabase.com/ and create a free project.
+2. In Project Settings > API (or Connect), copy the Project URL and anon/public key.
+3. Keep your database password private.
+
+STEP 2 — CREATE TABLES AND SECURITY
+1. In Supabase, open SQL Editor > New query.
+2. Open supabase-setup.sql from this package, copy all of it into SQL Editor, and Run.
+3. This creates the updates table, admin-only policies, and a public-read file bucket.
+
+STEP 3 — CREATE YOUR ADMIN LOGIN
+1. In Supabase, open Authentication > Users > Add user.
+2. Enter the admin email and a strong password. Confirm/create the user.
+3. Copy that user's UUID/ID.
+4. In SQL Editor run this command, replacing the placeholder with the exact UUID:
+   insert into public.wak_admins (user_id) values ('PASTE-ADMIN-USER-UUID-HERE');
+   (Use the actual UUID, not the words in the placeholder.)
+5. For security, turn off public sign-ups in Authentication settings if enabled. Create admin users only from the dashboard.
+
+STEP 4 — CONNECT THE WEBSITE
+1. Open supabase-config.js in a text editor.
+2. Replace https://YOUR_PROJECT_ID.supabase.co with your real Project URL.
+3. Replace YOUR_SUPABASE_ANON_PUBLIC_KEY with the anon/public key from Supabase.
+4. Save. Never paste a service_role/secret key here.
+5. Upload/replace these files in the same GitHub Pages repository root:
+   index.html
+   admin.html
+   supabase-config.js
+   (supabase-setup.sql and this guide are setup files; they do not have to be public on your site. Prefer not to publish the SQL file.)
+
+STEP 5 — OPEN AND TEST
+- Admin login: https://waqasahmad8490-bit.github.io/wak-healthhome-care-abbottabad/admin.html
+- Public website: https://waqasahmad8490-bit.github.io/wak-healthhome-care-abbottabad/
+- Sign in, choose “New update”, enter a title/description, optionally attach a PDF/image/document (max 15 MB), and save.
+- Published items should appear on the public notice board. Drafts remain private to admin.
+- Test with one harmless announcement first.
+
+TROUBLESHOOTING
+- “Invalid API key” means the URL/key in supabase-config.js is incorrect.
+- “Invalid login credentials” means the email/password are wrong or the user has not been created.
+- “Could not load updates / permission denied” means the SQL setup or admin UUID insert was not completed.
+- Upload errors usually mean the storage policies/bucket setup did not run.
+- After GitHub upload, wait a minute or two and refresh the website. On mobile, try a private/incognito tab if cached.
+
+SECURITY
+The anon/public key is expected to be used in browser code, but database and storage Row Level Security policies protect the records. Do not disable RLS and do not publish a service_role key.

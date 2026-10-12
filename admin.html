@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#063B67"><title>WAK Admin Panel | Abbottabad</title>
+<style>
+:root{--navy:#063b67;--teal:#119b91;--ink:#162b3b;--muted:#637687;--line:#dfe8ef;--soft:#f4f8fb;--red:#b42318}
+*{box-sizing:border-box}body{margin:0;background:var(--soft);font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:var(--ink)}button,input,textarea,select{font:inherit}a{color:inherit}
+header{background:var(--navy);color:white;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}header strong{font-size:18px}header span{display:block;color:#c9dbe8;font-size:12px;margin-top:3px}
+.wrap{max-width:1080px;margin:30px auto;padding:0 16px}.panel{background:white;border:1px solid var(--line);border-radius:16px;padding:24px;box-shadow:0 10px 30px #123b5410;margin-bottom:18px}.hidden{display:none!important}
+h1{font-size:25px;color:var(--navy);margin:0 0 8px}h2{font-size:19px;margin:0 0 18px;color:var(--navy)}p{color:var(--muted);line-height:1.55}.muted{font-size:13px;color:var(--muted)}label{display:block;font-weight:700;font-size:13px;margin:14px 0 6px}
+input,textarea,select{width:100%;padding:12px;border:1px solid #ccd9e3;border-radius:9px;background:white;color:var(--ink)}textarea{min-height:105px;resize:vertical}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}.full{grid-column:1/-1}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.btn{border:0;border-radius:9px;padding:11px 16px;font-weight:750;cursor:pointer;background:var(--navy);color:white}.btn.alt{background:#e9f2f7;color:var(--navy)}.btn.teal{background:var(--teal)}.btn.danger{background:var(--red)}.btn:disabled{opacity:.5;cursor:not-allowed}
+.status{margin:14px 0;padding:12px;border-radius:9px;background:#eef6fb;color:var(--navy);font-size:13px;white-space:pre-wrap}.status.error{background:#fff0ef;color:var(--red)}.status.success{background:#eaf8f0;color:#12683c}
+.list{display:grid;gap:12px}.item{border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;gap:16px;justify-content:space-between;align-items:flex-start}.item h3{margin:0 0 6px;font-size:16px;color:var(--navy)}.item p{margin:0;font-size:13px}.pill{display:inline-block;font-size:11px;border-radius:30px;padding:4px 9px;background:#e7f6f3;color:#08776e;font-weight:800;margin-bottom:7px}.pill.draft{background:#fff3db;color:#8a5b00}.actions{display:flex;gap:7px;flex-wrap:wrap;flex-shrink:0}
+@media(max-width:650px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.panel{padding:18px}.item{display:block}.actions{margin-top:12px}}
+</style>
+</head>
+<body>
+<header><div><strong>WAK Health &amp; Home Care</strong><span>Abbottabad · Secure Notice Board Admin</span></div><div class="row"><a href="./index.html" style="font-size:13px">View website ↗</a><button id="logoutBtn" class="btn alt hidden" type="button">Log out</button></div></header>
+<main class="wrap">
+<section id="loginPanel" class="panel">
+<h1>Admin Login</h1><p>Sign in with the admin email created in your Supabase project. Public visitors cannot publish notices.</p>
+<form id="loginForm"><label for="email">Admin email</label><input id="email" type="email" autocomplete="username" required>
+<label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required>
+<div class="row" style="margin-top:18px"><button class="btn" type="submit">Sign in</button></div></form>
+<div id="loginStatus" class="status hidden" role="status"></div>
+</section>
+<section id="appPanel" class="hidden">
+<div class="panel"><div class="row" style="justify-content:space-between"><div><h1>Notice Board Manager</h1><p class="muted">Create announcements, upload PDF/images/documents, and publish them to the live website.</p></div><button id="newBtn" class="btn teal" type="button">+ New update</button></div><div id="appStatus" class="status hidden" role="status"></div></div>
+<section id="editor" class="panel hidden">
+<h2 id="editorTitle">Add new update</h2>
+<form id="updateForm">
+<input id="updateId" type="hidden">
+<div class="grid">
+<div><label for="category">Category</label><select id="category"><option>Announcement</option><option>News</option><option>Health Information</option><option>Services</option><option>Results / Merit List</option><option>Documents</option></select></div>
+<div><label for="title">Title *</label><input id="title" maxlength="160" required placeholder="e.g. Important service announcement"></div>
+<div class="full"><label for="description">Description *</label><textarea id="description" maxlength="3000" required placeholder="Write the notice details here..."></textarea></div>
+<div><label for="linkUrl">Optional external link</label><input id="linkUrl" type="url" placeholder="https://..."></div>
+<div><label for="linkText">Link label</label><input id="linkText" maxlength="80" placeholder="Read more"></div>
+<div class="full"><label for="attachment">Upload PDF, image or document (max 15 MB)</label><input id="attachment" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx"><p class="muted" id="currentFile"></p></div>
+<div class="full"><label class="row" style="font-weight:600"><input id="publish" type="checkbox" checked style="width:auto"> Publish immediately (otherwise save as draft)</label></div>
+</div>
+<div class="row" style="margin-top:18px"><button class="btn" type="submit">Save update</button><button id="cancelBtn" class="btn alt" type="button">Cancel</button></div>
+</form>
+</section>
+<div class="panel"><h2>Published updates &amp; drafts</h2><div id="updatesList" class="list"><p class="muted">Loading updates...</p></div></div>
+</section>
+<div class="muted" style="text-align:center;padding:8px 0 28px">WAK Health &amp; Home Care · Admin access only</div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./supabase-config.js"></script>
+<script>
+(function(){
+ const cfg=window.WAK_SUPABASE||{};
+ const configured=cfg.url&&cfg.anonKey&&!cfg.url.includes('YOUR_PROJECT')&&!cfg.anonKey.includes('YOUR_SUPABASE');
+ const $=id=>document.getElementById(id);
+ const loginPanel=$('loginPanel'),appPanel=$('appPanel'),loginStatus=$('loginStatus'),appStatus=$('appStatus'),editor=$('editor');
+ let client=null, session=null, existingFileUrl='', existingFileName='';
+ function status(el,msg,type=''){el.textContent=msg;el.className='status'+(type?' '+type:'');el.classList.remove('hidden')}
+ function clearStatus(el){el.classList.add('hidden');el.textContent=''}
+ function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+ function filePathFromPublicUrl(url){const marker='/storage/v1/object/public/wak-notice-files/';const i=(url||'').indexOf(marker);return i>=0?url.slice(i+marker.length):null}
+ function showApp(){loginPanel.classList.add('hidden');appPanel.classList.remove('hidden');$('logoutBtn').classList.remove('hidden');loadUpdates()}
+ function showLogin(){appPanel.classList.add('hidden');loginPanel.classList.remove('hidden');$('logoutBtn').classList.add('hidden')}
+ function resetEditor(){ $('updateForm').reset();$('updateId').value='';$('editorTitle').textContent='Add new update';$('currentFile').textContent='';existingFileUrl='';existingFileName='';editor.classList.add('hidden');}
+ async function loadUpdates(){
+  clearStatus(appStatus);$('updatesList').innerHTML='<p class="muted">Loading updates...</p>';
+  const {data,error}=await client.from('wak_updates').select('*').order('created_at',{ascending:false});
+  if(error){$('updatesList').innerHTML='';status(appStatus,'Could not load updates: '+error.message,'error');return}
+  if(!data.length){$('updatesList').innerHTML='<p class="muted">No updates yet. Tap “New update” to publish the first notice.</p>';return}
+  $('updatesList').innerHTML=data.map(item=>`<article class="item"><div><span class="pill ${item.is_published?'':'draft'}">${item.is_published?'PUBLISHED':'DRAFT'}</span><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.category)} · ${escapeHtml(item.published_at?new Date(item.published_at).toLocaleString():'Not published')}</p><p style="margin-top:6px">${escapeHtml(item.description).slice(0,220)}</p>${item.file_url?`<p style="margin-top:6px"><a href="${escapeHtml(item.file_url)}" target="_blank" rel="noopener">Attachment: ${escapeHtml(item.file_name||'Open file')}</a></p>`:''}</div><div class="actions"><button class="btn alt" data-edit="${item.id}" type="button">Edit</button><button class="btn ${item.is_published?'alt':'teal'}" data-toggle="${item.id}" data-published="${item.is_published}" type="button">${item.is_published?'Unpublish':'Publish'}</button><button class="btn danger" data-delete="${item.id}" type="button">Delete</button></div></article>`).join('');
+ }
+ $('loginForm').addEventListener('submit',async e=>{e.preventDefault();clearStatus(loginStatus);if(!configured){status(loginStatus,'Setup required: first add your Supabase Project URL and anon/public key to supabase-config.js. See SETUP-GUIDE.txt.','error');return}
+  const {data,error}=await client.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});
+  if(error){status(loginStatus,error.message,'error');return}session=data.session;showApp();
+ });
+ $('logoutBtn').addEventListener('click',async()=>{await client.auth.signOut();session=null;showLogin()});
+ $('newBtn').addEventListener('click',()=>{resetEditor();editor.classList.remove('hidden');$('editorTitle').textContent='Add new update';editor.scrollIntoView({behavior:'smooth'})});
+ $('cancelBtn').addEventListener('click',resetEditor);
+ $('updateForm').addEventListener('submit',async e=>{
+  e.preventDefault();clearStatus(appStatus);
+  const saveBtn=$('updateForm').querySelector('button[type=submit]');saveBtn.disabled=true;
+  try{
+   const id=$('updateId').value||null;const title=$('title').value.trim();const description=$('description').value.trim();
+   if(!title||!description)throw new Error('Title and description are required.');
+   let fileUrl=existingFileUrl,fileName=existingFileName;const file=$('attachment').files[0];
+   if(file){
+    if(file.size>15*1024*1024)throw new Error('File is larger than 15 MB. Please choose a smaller file.');
+    const safe=file.name.replace(/[^a-zA-Z0-9._-]/g,'_');const path=Date.now()+'-'+Math.random().toString(36).slice(2,8)+'-'+safe;
+    const {error:upErr}=await client.storage.from('wak-notice-files').upload(path,file,{upsert:false,contentType:file.type||'application/octet-stream'});
+    if(upErr)throw upErr;
+    const {data:urlData}=client.storage.from('wak-notice-files').getPublicUrl(path);
+    fileUrl=urlData.publicUrl;fileName=file.name;
+   }
+   const published=$('publish').checked;
+   const record={category:$('category').value,title,description,link_url:$('linkUrl').value.trim()||null,link_text:$('linkText').value.trim()||null,file_url:fileUrl||null,file_name:fileName||null,is_published:published,published_at:published?new Date().toISOString():null,updated_at:new Date().toISOString()};
+   let result;
+   if(id)result=await client.from('wak_updates').update(record).eq('id',id);
+   else result=await client.from('wak_updates').insert(record);
+   if(result.error)throw result.error;
+   status(appStatus,'Update saved successfully. '+(published?'It is published on the website.':'It has been saved as a draft.'),'success');
+   resetEditor();await loadUpdates();
+  }catch(err){status(appStatus,'Could not save update: '+err.message,'error')}
+  finally{saveBtn.disabled=false}
+ });
+ $('updatesList').addEventListener('click',async e=>{
+  const edit=e.target.closest('[data-edit]');const tog=e.target.closest('[data-toggle]');const del=e.target.closest('[data-delete]');
+  if(edit){
+   const {data,error}=await client.from('wak_updates').select('*').eq('id',edit.dataset.edit).single();if(error){status(appStatus,error.message,'error');return}
+   $('updateId').value=data.id;$('category').value=data.category||'Announcement';$('title').value=data.title||'';$('description').value=data.description||'';$('linkUrl').value=data.link_url||'';$('linkText').value=data.link_text||'';$('publish').checked=!!data.is_published;$('currentFile').textContent=data.file_name?'Current attachment: '+data.file_name:'No attachment';existingFileUrl=data.file_url||'';existingFileName=data.file_name||'';$('attachment').value='';$('editorTitle').textContent='Edit update';editor.classList.remove('hidden');editor.scrollIntoView({behavior:'smooth'});return
+  }
+  if(tog){
+   const publish=tog.dataset.published!=='true';const {error}=await client.from('wak_updates').update({is_published:publish,published_at:publish?new Date().toISOString():null,updated_at:new Date().toISOString()}).eq('id',tog.dataset.toggle);
+   if(error){status(appStatus,error.message,'error');return}status(appStatus,publish?'Update published.':'Update moved to drafts.','success');loadUpdates();return
+  }
+  if(del&&confirm('Delete this update permanently?')){
+   const {data}=await client.from('wak_updates').select('file_url').eq('id',del.dataset.delete).single();
+   const {error}=await client.from('wak_updates').delete().eq('id',del.dataset.delete);
+   if(error){status(appStatus,error.message,'error');return}
+   if(data&&data.file_url){const p=filePathFromPublicUrl(data.file_url);if(p)await client.storage.from('wak-notice-files').remove([p])}
+   status(appStatus,'Update deleted.','success');loadUpdates()
+  }
+ });
+ if(configured){client=window.supabase.createClient(cfg.url,cfg.anonKey);client.auth.getSession().then(({data})=>{if(data.session){session=data.session;showApp()}})}else{status(loginStatus,'Admin panel is ready, but it will not work until Supabase is configured. Open SETUP-GUIDE.txt and follow the steps.','error')}
+})();
+</script>
+</body></html>

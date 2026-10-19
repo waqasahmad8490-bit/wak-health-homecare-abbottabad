@@ -1,5 +1,5 @@
 
 window.WAK_SUPABASE = {
-  url: "https://bkxxtvpxgbkzaxvdtbht.supabase.co",
-  anonKey: "sb_publishable_ErrwCbu4u639EswhQy1vVg_Rz5ZXudW"
+  url: "https://zeplwtnzdllifjvaxwbm.supabase.co",
+  anonKey: "sb_publishable__Yf5l0KzBpY9oQ6NJV-jiA_5NcDs1FO"
 };
